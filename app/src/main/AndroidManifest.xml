@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
-    <application android:theme="@style/AppTheme" android:label="AffareRadar Worker" android:allowBackup="false">
+    <application android:theme="@style/AppTheme" android:label="AffareRadar v0.5" android:allowBackup="false">
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -13,7 +13,7 @@
         <receiver android:name=".BootReceiver" android:enabled="true" android:exported="true">
             <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /></intent-filter>
         </receiver>
-        <service android:name=".RadarNotificationListener" android:label="AffareRadar Worker" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" android:exported="true">
+        <service android:name=".RadarNotificationListener" android:label="AffareRadar v0.5" android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" android:exported="true">
             <intent-filter><action android:name="android.service.notification.NotificationListenerService" /></intent-filter>
         </service>
     </application>
