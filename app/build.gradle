@@ -7,10 +7,10 @@ android {
     compileSdk 35
 
     defaultConfig {
-        applicationId 'it.affareradar.worker.note8test'
+        applicationId 'it.affareradar.worker.note8clean'
         minSdk 21
         targetSdk 28
         versionCode 1
-        versionName '0.2-note8-test'
+        versionName '0.3-note8-clean'
     }
 }
