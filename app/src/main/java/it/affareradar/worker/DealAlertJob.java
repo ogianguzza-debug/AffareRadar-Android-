@@ -21,6 +21,12 @@ public class DealAlertJob extends JobService {
         JobInfo.Builder b=new JobInfo.Builder(JOB_ID,new ComponentName(c,DealAlertJob.class)).setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY).setPersisted(true);
         if(Build.VERSION.SDK_INT>=24)b.setPeriodic(15*60*1000L,5*60*1000L);else b.setPeriodic(15*60*1000L);
         js.schedule(b.build());
+        JobInfo immediate=new JobInfo.Builder(JOB_ID+1,new ComponentName(c,DealAlertJob.class))
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                .setMinimumLatency(0)
+                .setOverrideDeadline(1000)
+                .build();
+        js.schedule(immediate);
     }
     @Override public boolean onStartJob(JobParameters p){new Thread(()->{poll();jobFinished(p,false);}).start();return true;}
     @Override public boolean onStopJob(JobParameters p){return true;}
