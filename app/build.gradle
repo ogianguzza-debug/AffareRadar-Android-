@@ -19,8 +19,8 @@ android {
         applicationId 'it.affareradar.worker'
         minSdk 21
         targetSdk 28
-        versionCode 3
-        versionName '1.2'
+        versionCode 4
+        versionName '1.3'
     }
 
     lint {
