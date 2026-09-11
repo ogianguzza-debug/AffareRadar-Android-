@@ -26,6 +26,10 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle b){
         super.onCreate(b);
         DealAlertJob.schedule(this);
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+                checkSelfPermission("android.permission.POST_NOTIFICATIONS") != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1001);
+        }
         LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(48,72,48,48); box.setGravity(Gravity.CENTER_HORIZONTAL);
         TextView title=new TextView(this); title.setText("AFFARERADAR\nWORKER 24/7"); title.setTextSize(30); title.setGravity(Gravity.CENTER); box.addView(title);
         TextView notif=new TextView(this); notif.setText("NOTIFICHE: AUTORIZZATE"); notif.setTextSize(20); notif.setPadding(0,35,0,12); box.addView(notif);
