@@ -1,5 +1,6 @@
 package it.affareradar.worker;
 
+import android.content.ComponentName;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -29,6 +30,7 @@ public class RadarNotificationListener extends NotificationListenerService {
 
     @Override public void onListenerDisconnected() {
         handler.removeCallbacks(heartbeatLoop);
+        try { requestRebind(new ComponentName(this, RadarNotificationListener.class)); } catch (Exception ignored) { }
         super.onListenerDisconnected();
     }
 
@@ -47,9 +49,7 @@ public class RadarNotificationListener extends NotificationListenerService {
         new Thread(() -> sendNotification(pkg, title, text, key)).start();
     }
 
-    private String token() {
-        return getSharedPreferences("radar", MODE_PRIVATE).getString("worker_token", "");
-    }
+    private String token() { return getSharedPreferences("radar", MODE_PRIVATE).getString("worker_token", ""); }
 
     private void sendHeartbeat() {
         final String t = token();
@@ -58,11 +58,13 @@ public class RadarNotificationListener extends NotificationListenerService {
             try {
                 JSONObject body = new JSONObject();
                 body.put("event", "heartbeat");
-                body.put("appVersion", "0.4-note8-worker");
+                body.put("appVersion", "1.1-note8-worker");
                 body.put("deviceModel", android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
                 JSONObject caps = new JSONObject();
                 caps.put("officialNotifications", true);
                 caps.put("notificationListener", true);
+                caps.put("autoRebind", true);
+                caps.put("bootRebind", true);
                 body.put("capabilities", caps);
                 post(body, t);
             } catch (Exception ignored) { }
@@ -74,32 +76,18 @@ public class RadarNotificationListener extends NotificationListenerService {
         if (t.isEmpty()) return;
         try {
             JSONObject item = new JSONObject();
-            item.put("packageName", pkg);
-            item.put("title", title);
-            item.put("content", text);
-            item.put("key", key == null ? "" : key);
-            JSONArray items = new JSONArray();
-            items.put(item);
-            JSONObject root = new JSONObject();
-            root.put("event", "official_notifications");
-            root.put("items", items);
-            post(root, t);
-            sendHeartbeat();
+            item.put("packageName", pkg); item.put("title", title); item.put("content", text); item.put("key", key == null ? "" : key);
+            JSONArray items = new JSONArray(); items.put(item);
+            JSONObject root = new JSONObject(); root.put("event", "official_notifications"); root.put("items", items);
+            post(root, t); sendHeartbeat();
         } catch (Exception ignored) { }
     }
 
     private void post(JSONObject body, String t) throws Exception {
         HttpURLConnection c = (HttpURLConnection)new URL(ENDPOINT).openConnection();
-        c.setRequestMethod("POST");
-        c.setRequestProperty("Content-Type", "application/json");
-        c.setRequestProperty("x-worker-token", t);
-        c.setConnectTimeout(10000);
-        c.setReadTimeout(10000);
-        c.setDoOutput(true);
-        try (OutputStream os = c.getOutputStream()) {
-            os.write(body.toString().getBytes("UTF-8"));
-        }
-        c.getResponseCode();
-        c.disconnect();
+        c.setRequestMethod("POST"); c.setRequestProperty("Content-Type", "application/json"); c.setRequestProperty("x-worker-token", t);
+        c.setConnectTimeout(10000); c.setReadTimeout(10000); c.setDoOutput(true);
+        try (OutputStream os = c.getOutputStream()) { os.write(body.toString().getBytes("UTF-8")); }
+        c.getResponseCode(); c.disconnect();
     }
 }
