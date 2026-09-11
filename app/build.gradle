@@ -6,11 +6,27 @@ android {
     namespace 'it.affareradar.worker'
     compileSdk 35
 
+    signingConfigs {
+        stable {
+            storeFile file(System.getenv('ANDROID_KEYSTORE_FILE') ?: 'affareradar-release.jks')
+            storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            keyAlias System.getenv('ANDROID_KEY_ALIAS')
+            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+        }
+    }
+
     defaultConfig {
-        applicationId 'it.affareradar.worker.note8worker3'
+        applicationId 'it.affareradar.worker'
         minSdk 21
         targetSdk 28
         versionCode 1
-        versionName '0.5-note8-worker'
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.stable
+            minifyEnabled false
+        }
     }
 }
