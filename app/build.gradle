@@ -23,6 +23,10 @@ android {
         versionName '1.0'
     }
 
+    lint {
+        disable 'ExpiredTargetSdkVersion'
+    }
+
     buildTypes {
         release {
             signingConfig signingConfigs.stable
