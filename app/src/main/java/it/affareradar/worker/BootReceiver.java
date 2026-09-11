@@ -8,7 +8,8 @@ import android.service.notification.NotificationListenerService;
 
 public class BootReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context context, Intent intent) {
-        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {\n            DealAlertJob.schedule(context);
+        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+            DealAlertJob.schedule(context);
             try {
                 ComponentName cn = new ComponentName(context, RadarNotificationListener.class);
                 NotificationListenerService.requestRebind(cn);
