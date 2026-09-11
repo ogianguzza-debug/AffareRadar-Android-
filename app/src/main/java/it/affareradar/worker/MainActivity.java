@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
     private Button pair;
 
     @Override public void onCreate(Bundle b){
-        super.onCreate(b);
+        super.onCreate(b);\n        DealAlertJob.schedule(this);
         LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(48,72,48,48); box.setGravity(Gravity.CENTER_HORIZONTAL);
         TextView title=new TextView(this); title.setText("AFFARERADAR\nWORKER 24/7"); title.setTextSize(30); title.setGravity(Gravity.CENTER); box.addView(title);
         TextView notif=new TextView(this); notif.setText("NOTIFICHE: AUTORIZZATE"); notif.setTextSize(20); notif.setPadding(0,35,0,12); box.addView(notif);
