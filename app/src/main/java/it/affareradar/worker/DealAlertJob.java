@@ -34,9 +34,9 @@ public class DealAlertJob extends JobService {
         String title=d.optString("title","").toLowerCase(Locale.ROOT);
         if(price>0&&prudent>=price*3) score+=12;
         if(price>0&&prudent>=price*5) score+=10;
-        if(price>0&&price<=10000) score+=5;
-        if(cat.contains("da identificare")||cat.contains("unknown")||title.length()<18) score+=6;
-        String[] hunt={"lamp","lámp","szék","fotel","óra","watch","robot","játék","toy","modell","kerám","üveg","glass","váza","design","retro","régi","vintage","hangfal","speaker","audio","leder","leather","bőr","limited edition","made in germany","porsche design"};
+        
+        if(cat.contains("da identificare")||cat.contains("unknown")) score+=2;
+        String[] hunt={"space age","mid century","bauhaus","thonet","flötotto","sonos","bang","bose","bowers","kef","marantz","denon","yamaha","harman","jbl","limited edition","made in germany","porsche design","prada","gucci","saint laurent","ysl","bottega","miu miu","balenciaga","versace","cucinelli","loro piana","tom ford","louboutin","edward green","santoni","paraboot","isabel marant","vivienne westwood","jil sander","max mara","burberry","mulberry","chloé","chloe","jimmy choo","woolrich","marni"};
         for(String k:hunt)if(cat.contains(k)||title.contains(k)){score+=5;break;}
         return Math.min(100,score);
     }
@@ -49,7 +49,7 @@ public class DealAlertJob extends JobService {
         SharedPreferences prefs=getSharedPreferences("deal_alerts",MODE_PRIVATE);
         int total=0,unseen=0,qualified=0,sent=0;String sources="";
         try{
-            HttpURLConnection c=(HttpURLConnection)new URL(FEED).openConnection();c.setRequestProperty("apikey",KEY);c.setConnectTimeout(15000);c.setReadTimeout(25000);
+            HttpURLConnection c=(HttpURLConnection)new URL(FEED).openConnection();c.setRequestProperty("apikey",KEY);c.setRequestProperty("Connection","close");c.setUseCaches(false);c.setConnectTimeout(20000);c.setReadTimeout(60000);
             int http=c.getResponseCode();if(http<200||http>=300)throw new IOException("Feed HTTP "+http);
             BufferedReader br=new BufferedReader(new InputStreamReader(c.getInputStream()));StringBuilder s=new StringBuilder();String l;while((l=br.readLine())!=null)s.append(l);c.disconnect();
             JSONArray a=new JSONObject(s.toString()).optJSONArray("deals");if(a==null)throw new JSONException("Feed senza array deals");
