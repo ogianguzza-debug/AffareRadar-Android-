@@ -23,7 +23,7 @@ import java.net.URL;
 
 public class MainActivity extends Activity {
     private static final String ENDPOINT="https://tquprajezqoasqbmknwc.supabase.co/functions/v1/affareradar-worker";
-    private static final String DASHBOARD_API="https://tquprajezqoasqbmknwc.supabase.co/functions/v1/affareradar-dashboard?api=1";
+    private static final String DASHBOARD_API="https://tquprajezqoasqbmknwc.supabase.co/functions/v1/affareradar-feed";\n    private static final String API_KEY="sb_publishable_oIkCZfnXytk2QL2WgYGQYQ_tQHUR22w";
     private TextView server, result, status;
     private EditText code;
     private Button pair;
@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
         root.addView(filters);
 
         TextView learn=new TextView(this);
-        learn.setText("🧠 COSA STA CERCANDO\n\n• Valore nascosto: annunci descritti male, marchi mancanti e prezzi incompatibili con l'oggetto.\n• Design/collezione: lampade insolite, Space Age/Pop, ceramiche, vetri, oggetti oversize, IKEA vintage firmato, Lumibär/Flötotto, Bay Keramik, KARE e pezzi non marchiati ad alto impatto.\n• Resale: margine netto serio, poco capitale quando possibile, liquidità reale e rischio autenticità.\n• Jackpot: oggetti anonimi o sottovalutati che possono valere molte volte il prezzo richiesto.");
+        learn.setText("🧠 COSA STA CERCANDO\n\n• Valore nascosto: annunci descritti male, marchi mancanti e prezzi incompatibili con l'oggetto.\n• Design/collezione: lampade insolite, Space Age/Pop, vetri importanti, piccoli mobili, IKEA vintage firmato, KARE e pezzi non marchiati ad alto impatto.\n• Moda/lusso: borse, scarpe, abbigliamento e accessori premium sottovalutati, con forte controllo del rischio fake.\n• Resale: margine netto serio, poco capitale quando possibile, liquidità reale e rischio autenticità.\n• Jackpot: oggetti anonimi o sottovalutati che possono valere molte volte il prezzo richiesto.");
         learn.setTextColor(Color.rgb(203,213,225)); learn.setTextSize(14); learn.setPadding(0,18,0,18); root.addView(learn);
 
         dealsBox=new LinearLayout(this); dealsBox.setOrientation(LinearLayout.VERTICAL); root.addView(dealsBox);
@@ -94,7 +94,7 @@ public class MainActivity extends Activity {
         new Thread(()->{
             try{
                 HttpURLConnection c=(HttpURLConnection)new URL(DASHBOARD_API).openConnection();
-                c.setConnectTimeout(12000); c.setReadTimeout(12000); c.setRequestProperty("Accept","application/json");
+                c.setConnectTimeout(20000); c.setReadTimeout(60000); c.setUseCaches(false); c.setRequestProperty("Connection","close"); c.setRequestProperty("Accept","application/json"); c.setRequestProperty("apikey",API_KEY);
                 int r=c.getResponseCode(); BufferedReader br=new BufferedReader(new InputStreamReader(r>=200&&r<300?c.getInputStream():c.getErrorStream()));
                 StringBuilder s=new StringBuilder(); String l; while((l=br.readLine())!=null)s.append(l); c.disconnect();
                 if(r<200||r>=300) throw new Exception("HTTP "+r);
@@ -110,7 +110,7 @@ public class MainActivity extends Activity {
         int shown=0;
         for(int i=0;i<dealsCache.length();i++){
             JSONObject d=dealsCache.optJSONObject(i); if(d==null) continue;
-            String mode=d.optString("mode","watch"); int score=d.optInt("score",0);
+            String mode=d.optString("mode","watch"); if("watch".equals(mode)){ String s=(d.optString("title","")+" "+d.optString("category","")).toLowerCase(); boolean col=s.matches(".*(lamp|lámp|fotel|chair|szék|szek|robot|játék|toy|modell|óra|watch|audio|speaker|hangfal|industrial|ipari|design|retro|vintage).*"); boolean res=s.matches(".*(gucci|prada|miu miu|balenciaga|versace|saint laurent|ysl|burberry|bottega|cucinelli|loro piana|max mara|tom ford|louboutin|santoni|paraboot|edward green|isabel marant|vivienne westwood|porsche design).*"); mode=col&&res?"both":col?"collection":res?"resale":"watch"; } int score=d.optInt("score",0);
             boolean ok="all".equals(filter) || filter.equals(mode) || ("hot".equals(filter)&&score>=90) || ("resale".equals(filter)&&"both".equals(mode)) || ("collection".equals(filter)&&"both".equals(mode));
             if(!ok) continue; shown++;
 
