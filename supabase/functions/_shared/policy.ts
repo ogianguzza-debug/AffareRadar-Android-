@@ -33,6 +33,7 @@ export function lane(d: any): string {
 }
 export function clientDeal(d: any) {
   const qualified = alertEligible(d);
+  const evidence=object(d.raw).valueEvidence;
   return {
     ...d, raw: undefined, vision_raw: undefined,
     priceHuf: number(d.price_huf), sourceId: d.source_id, sourceName: d.source_name,
@@ -41,6 +42,7 @@ export function clientDeal(d: any) {
     netProfitHuf: number(d.conservative_profit_huf), mode: lane(d), alertEligible: qualified,
     reviewStatus: qualified ? 'opportunity' : d.vision_status === 'checked' ? 'reviewed' : 'pending',
     comparables: object(d.raw).valueEvidence?.comparables ?? [],
+    valuationCurrent: number(evidence?.askingHuf)===number(d.price_huf) && number(d.price_huf)>0 && Array.isArray(evidence?.comparables) && evidence.comparables.length>=3,
     verificationNote: qualified ? 'Foto e comparabili esaminati; autenticità non certificata.' :
       d.vision_status === 'checked' ? 'Foto esaminate: valore, dettagli o comparabili ancora da verificare.' : 'Candidato preliminare: analisi fotografica in attesa.',
   };

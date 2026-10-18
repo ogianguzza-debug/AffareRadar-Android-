@@ -46,7 +46,7 @@ public class DealAlertJob extends JobService {
                 JSONObject deal=deals.optJSONObject(i);if(deal==null||!DealData.eligible(deal))continue;
                 String id=deal.optString("id","");
                 if(id.isEmpty()||seen.contains(id)||!AppState.safeLink(deal.optString("url")))continue;
-                if(notifyDeal(deal,10000+Math.floorMod(id.hashCode(),1000000))){seen.add(id);sent++;}
+                if(notifyDeal(deal,10000+(id.hashCode()&0x7fffffff)%1000000)){seen.add(id);sent++;}
             }
             while(seen.size()>1000)seen.remove(seen.iterator().next());
             JSONArray saved=new JSONArray();for(String id:seen)saved.put(id);

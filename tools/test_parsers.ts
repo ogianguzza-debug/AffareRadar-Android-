@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {vateraListings} from '../supabase/functions/_shared/vatera.ts';
+import {soldListings} from '../supabase/functions/_shared/sold.ts';
+const v=`<a class="product_link" title="Retro lamp" href="https://www.vatera.hu/retro-lamp-12345678.html">Lamp</a><div class="auction-price">4 300 Ft</div><span class="fix-price">buy</span><span class="originalVal">4 400</span> Ft<img srcset="https://images.vatera.hu/retro-12345678_1.jpg?resize.width=40,https://images.vatera.hu/retro-12345678_2.jpg?resize.width=40"><a class="product_link" title="Clock" href="https://www.vatera.hu/clock-23456789.html">Clock</a><span class="auction-price">9 000 Ft</span>`;
+const listings=vateraListings(v);
+assert.equal(listings[0].price,4400);assert.equal(listings[0].isAuction,false);
+assert.equal(listings[1].isAuction,true);assert.equal(listings[1].price,9000);
+assert.equal(listings[0].images.length,2);assert(listings[0].images.every(u=>!u.includes(',')));
+const hidden=`<h3><a href="/termekek/reszletek/design/123/Lamp/">Lamp model 123</a></h3><span class="product-price"><span class="product-money-type">Eladva</span></span><p>Shipping 1649 HUF</p><h3><a href="/termekek/reszletek/design/456/Other/">Other lamp</a></h3><span class="product-price">90 000 <span>HUF</span></span>`;
+const sold=soldListings(hidden);assert.equal(sold.length,1);assert.equal(sold[0].price,90000);assert(sold[0].url.includes('/456/'));
+assert.equal(soldListings(hidden.split('<h3>')[0]).length,0);
+console.log('Listing parsers: fixed price, auctions, image association and hidden sold prices passed');

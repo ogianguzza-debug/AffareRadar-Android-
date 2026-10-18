@@ -19,7 +19,7 @@ adb('shell','input','tap',str((b[0]+b[2])//2),str((b[1]+b[3])//2))
 deadline=time.monotonic()+100
 while True:
     radar=hierarchy('radar.xml');texts=[n.get('text','') for n in radar.iter('node')]
-    if 'Stato della ricerca' in texts:break
+    if 'Stato della ricerca' in texts and any('CANDIDATO' in t or 'FOTO ESAMINATE' in t or 'OPPORTUNITÀ DA VERIFICARE' in t or 'Nessun elemento' in t for t in texts):break
     if time.monotonic()>deadline:raise AssertionError('Radar did not finish loading: '+repr(texts))
     time.sleep(3)
 assert any('opportunità' in t and 'elementi' in t for t in texts),'Summary missing'

@@ -14,11 +14,11 @@ from PIL import Image, ImageOps
 ENDPOINT = 'https://tquprajezqoasqbmknwc.supabase.co/functions/v1/affareradar-vision'
 MODEL = 'qwen3-vl:2b'
 SCHEMA = {'type':'object','properties':{
-    'identification':{'type':'string','maxLength':240}, 'confidence':{'type':'integer','minimum':0,'maximum':100},
-    'comp_query':{'type':'string','maxLength':90}, 'reason':{'type':'string','maxLength':350},
-    'positive_signs':{'type':'array','maxItems':3,'items':{'type':'string','maxLength':100}},
-    'red_flags':{'type':'array','maxItems':3,'items':{'type':'string','maxLength':100}},
-    'missing_photos':{'type':'array','maxItems':3,'items':{'type':'string','maxLength':100}}},
+    'identification':{'type':'string','maxLength':120}, 'confidence':{'type':'integer','minimum':0,'maximum':100},
+    'comp_query':{'type':'string','maxLength':60}, 'reason':{'type':'string','maxLength':160},
+    'positive_signs':{'type':'array','maxItems':2,'items':{'type':'string','maxLength':60}},
+    'red_flags':{'type':'array','maxItems':2,'items':{'type':'string','maxLength':60}},
+    'missing_photos':{'type':'array','maxItems':2,'items':{'type':'string','maxLength':60}}},
     'required':['identification','confidence','comp_query','reason','positive_signs','red_flags','missing_photos'],
     'additionalProperties':False}
 
@@ -79,11 +79,16 @@ Use comp_query for an exact brand/model/type search (max 8 words), never invent 
 In reason distinguish visual observations from hypotheses. List close-up photographs needed to assess identity/authenticity.
 Flag visible inconsistencies, suspected replicas and poor image coverage in red_flags/missing_photos.
 Listing data: ''' + json.dumps({k:deal.get(k) for k in ('title','description','price_huf','category')},ensure_ascii=False)
-    data=request_json('http://127.0.0.1:11434/api/generate',{
-        'model':MODEL,'prompt':prompt,'images':images,'format':SCHEMA,'stream':False,'think':False,
-        'options':{'temperature':0,'num_ctx':4096,'num_predict':700},'keep_alive':'10m'},timeout=300)
-    if not data.get('done') or data.get('done_reason')=='length': raise ValueError('Incomplete model output')
-    result=json.loads(data['response'])
+    payload={'model':MODEL,'prompt':prompt,'images':images,'format':SCHEMA,'stream':False,'think':False,
+        'options':{'temperature':0,'num_ctx':4096,'num_predict':1000},'keep_alive':'10m'}
+    for attempt in range(2):
+        data=request_json('http://127.0.0.1:11434/api/generate',payload,timeout=300)
+        try:
+            result=json.loads(data['response'])
+            break
+        except json.JSONDecodeError:
+            if attempt:raise ValueError('Incomplete model JSON')
+            payload['options']['num_predict']=1600
     for field in SCHEMA['required']:
         if field not in result: raise ValueError('Missing field '+field)
     return result,digests
@@ -104,6 +109,6 @@ def main():
             print('Review failed',deal['id'],message,flush=True)
             worker_call({'event':'error','id':deal['id'],'error':message})
     print('Completed photo reviews:',done,flush=True)
-    if queue and not done: raise SystemExit('All photo reviews failed')
+    if done != len(queue): raise SystemExit('Partial photo review: '+str(done)+'/'+str(len(queue)))
 
 if __name__=='__main__': main()

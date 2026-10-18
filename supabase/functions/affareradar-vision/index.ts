@@ -59,8 +59,8 @@ Deno.serve(async (req: Request) => {
     vision_red_flags=${sql.array(red)},vision_missing_photos=${sql.array(missing)},
     vision_positive_signs=${sql.array(strings(result.positive_signs))},vision_raw=${sql.json(evidence)},
     comp_query=${query || null},valuation_checked_at=null,
-    authenticity_status=${red.length ? 'needs_visual_review' : 'visual_reviewed_not_certified'},
-    authenticity_risk='Esame fotografico automatico; autenticità non certificata.',
+    authenticity_status=case when authenticity_status in ('declared_replica','high_risk') then authenticity_status else ${red.length ? 'needs_visual_review' : 'visual_reviewed_not_certified'} end,
+    authenticity_risk=case when authenticity_status in ('declared_replica','high_risk') then authenticity_risk else 'Esame fotografico automatico; autenticità non certificata.' end,
     authenticity_requires_vision=false,updated_at=now() where id=${body.id}`;
   return response({status:'success',id:body.id,paidAi:false,confidence});
 });

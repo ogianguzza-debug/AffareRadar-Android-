@@ -18,9 +18,10 @@ Deno.serve(async (req: Request) => {
     const inspected = [...reviewed, ...priced].filter(d => !excluded(d) && !seen.has(d.id) && !!seen.add(d.id)).map(clientDeal);
     // Older APKs treat every item in deals as an alert candidate: keep that array strict.
     const deals = inspected.filter(d => d.alertEligible);
-    const candidates = [...inspected.filter(d => !d.alertEligible), ...preliminary.filter(d => !excluded(d) && !seen.has(d.id) && !!seen.add(d.id)).map(clientDeal)];
+    const candidates = [...preliminary.filter(d => !excluded(d) && !seen.has(d.id) && !!seen.add(d.id)).map(clientDeal), ...inspected.filter(d => !d.alertEligible)];
+    const sourceHealth = sources.map(s => ({...s, connector_status:s.enabled && s.connector_status==='live' && (!s.last_success_at || Date.now()-new Date(s.last_success_at).getTime()>24*3600*1000) ? 'stale' : s.connector_status}));
     return response({version:'2.0', generatedAt:new Date().toISOString(), filterMode:'evidence-first',
-      deals, candidates, health:{sources, signals, lastVisionAt:vision[0]?.last_review_at ?? null,
+      deals, candidates, health:{sources:sourceHealth, signals, lastVisionAt:vision[0]?.last_review_at ?? null,
         visionMode:'open-source-github-runner', paidAi:false, alerts:deals.filter(d => d.alertEligible).length},
       rules:{ceramics:false, minimumProfitHuf:15000, minimumSoldComparables:3, photoReviewRequired:true}});
   } catch (error) {

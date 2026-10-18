@@ -134,16 +134,19 @@ public class MainActivity extends Activity {
         LinearLayout diagnostics=card();
         text(diagnostics,"Stato della ricerca",17,TEXT);
         String last=health.optString("lastVisionAt","");text(diagnostics,last.isEmpty()||"null".equals(last)?"Esame fotografico: primo ciclo in attesa":"Ultimo esame fotografico: "+last,13,MUTED);
+        LinearLayout details=column();details.setVisibility(View.GONE);
+        button(diagnostics,"Fonti e collegamenti",()->details.setVisibility(details.getVisibility()==View.GONE?View.VISIBLE:View.GONE));
+        diagnostics.addView(details);
         JSONArray sources=health.optJSONArray("sources");if(sources!=null)for(int i=0;i<sources.length();i++){
             JSONObject s=sources.optJSONObject(i);if(s==null)continue;String id=s.optString("id");
             if(!s.optBoolean("enabled")&&!Arrays.asList("ebay","etsy","vestiaire","facebook-marketplace").contains(id))continue;
             String status=s.optString("connector_status",s.optString("mode","da verificare"));
-            String label=s.optBoolean("enabled")?status:status.contains("credentials")?"credenziali API necessarie":"collegamento assistito necessario";
-            text(diagnostics,s.optString("name")+": "+label,13,MUTED);
-            String error=s.optString("last_error","");if(!error.isEmpty()&&!"null".equals(error))text(diagnostics,error,12,Color.rgb(255,185,122));
+            String label=s.optBoolean("enabled")?sourceLabel(status):status.contains("credentials")?"credenziali API necessarie":"collegamento assistito necessario";
+            text(details,s.optString("name")+": "+label,13,MUTED);
+            String error=s.optString("last_error","");if(!error.isEmpty()&&!"null".equals(error))text(details,error,12,Color.rgb(255,185,122));
         }
         int pending=0;JSONArray signals=health.optJSONArray("signals");if(signals!=null)for(int i=0;i<signals.length();i++){JSONObject s=signals.optJSONObject(i);if(s!=null&&!s.optString("resolution_status").equals("resolved"))pending+=s.optInt("count");}
-        if(pending>0)text(diagnostics,pending+" segnali marketplace ancora da collegare a un annuncio verificato",13,MUTED);
+        if(pending>0)text(details,pending+" segnali marketplace ancora da collegare a un annuncio verificato",13,MUTED);
         int shown=0;final int generation=screen;
         for(JSONObject d:items){
             String mode=d.optString("mode","watch");
@@ -156,14 +159,15 @@ public class MainActivity extends Activity {
             JSONArray images=DealData.images(d);
             if(images!=null&&images.length()>0){
                 ImageView image=new ImageView(this);image.setContentDescription("Fotografia dell’annuncio");image.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                image.setVisibility(View.GONE);TextView photoState=text(box,"Caricamento foto…",12,MUTED);
                 box.addView(image,new LinearLayout.LayoutParams(-1,dp(210)));
                 String url=images.optString(0);
-                photos.execute(()->{try{Bitmap pic=PhotoLoader.load(url);runOnUiThread(()->{if(screen==generation&&image.isAttachedToWindow())image.setImageBitmap(pic);});}catch(Exception ignored){}});
+                photos.execute(()->{try{Bitmap pic=PhotoLoader.load(url);runOnUiThread(()->{if(screen==generation&&image.isAttachedToWindow()){if(pic!=null){image.setImageBitmap(pic);image.setVisibility(View.VISIBLE);photoState.setVisibility(View.GONE);}else photoState.setText("Foto non disponibile · apri l’annuncio");}});}catch(Exception ignored){runOnUiThread(()->{if(screen==generation)photoState.setText("Foto non disponibile · apri l’annuncio");});}});
             }
             text(box,DealData.source(d)+" · "+DealData.price(d)+" Ft",16,TEXT);
             if(checked)text(box,d.optString("vision_identification","")+" · confidenza "+d.optInt("vision_confidence")+"%",15,MUTED);
             long low=DealData.value(d),high=d.optLong("estimatedHighHuf",d.optLong("estimated_high_huf",0));
-            boolean valued=low>0&&d.optInt("sold_comp_count")>=3&&d.optJSONArray("comparables")!=null&&d.optJSONArray("comparables").length()>=3;
+            boolean valued=low>0&&d.optBoolean("valuationCurrent",false);
             text(box,valued?"Valore netto prudente: "+low+(high>low?"–"+high:"")+" Ft\nMargine stimato: "+DealData.profit(d)+" Ft · "+d.optInt("sold_comp_count")+" comparabili":"Valore e margine: ancora da verificare",15,eligible?GREEN:MUTED);
             text(box,d.optString("verificationNote","Candidato da controllare"),14,MUTED);
             String observations=DealData.lines(d.optJSONArray("vision_reasons"));if(!observations.isEmpty())text(box,observations,14,MUTED);
@@ -181,5 +185,8 @@ public class MainActivity extends Activity {
         LinearLayout box=column();box.setPadding(dp(14),dp(14),dp(14),dp(14));
         GradientDrawable bg=new GradientDrawable();bg.setColor(CARD);bg.setCornerRadius(dp(12));box.setBackground(bg);
         LinearLayout.LayoutParams params=new LinearLayout.LayoutParams(-1,-2);params.setMargins(0,dp(12),0,0);cards.addView(box,params);return box;
+    }
+    private String sourceLabel(String value){
+        switch(value){case "live":return "attiva";case "protected":return "accesso pubblico bloccato";case "stale":return "raccolta recente da verificare";case "no_results":return "nessun annuncio letto";case "partial":return "raccolta parziale";case "error":return "errore di collegamento";default:return value;}
     }
 }
