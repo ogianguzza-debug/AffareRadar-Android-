@@ -22,12 +22,12 @@ Deno.serve(async (req: Request) => {
     const rows = await sql.begin(async tx => {
       return await tx`update public.ar_deals set vision_status='processing',
         vision_raw=${sql.json({runId, claimedAt:new Date().toISOString()})}, updated_at=now()
-        where id in (select id from public.ar_deals where active=true and cardinality(image_urls)>0
+        where id in (select id from public.ar_deals where active=true and cardinality(image_urls)>0 and vision_checked_at is null
           and score>=58 and price_huf between 500 and 250000 and last_seen_at>now()-interval '30 days'
           and source_id in (select id from public.ar_sources where enabled=true and coalesce(connector_status,'') not in ('protected','blocked','error'))
           and (vision_status is null or vision_status='pending' or (vision_status in ('processing','error') and updated_at<now()-interval '2 hours'))
           and lower(coalesce(title,'')||' '||coalesce(description,'')) !~ '(parfum|perfume|fragrance|herend|zsolnay|porcel[aá]n|ker[aá]mia|ceramic|terracotta|holl[oó]h[aá]za|aquincum|drasche)'
-          order by score desc,found_at desc for update skip locked limit 4)
+          order by (source_id='vinted') asc,score desc,found_at desc for update skip locked limit 4)
         returning id,title,description,price_huf,url,image_urls,category`;
     });
     return response({status:'success', paidAi:false, deals:rows.filter(d => !excluded(d))});

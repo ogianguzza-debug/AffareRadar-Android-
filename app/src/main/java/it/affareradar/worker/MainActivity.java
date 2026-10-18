@@ -163,9 +163,10 @@ public class MainActivity extends Activity {
             text(box,DealData.source(d)+" · "+DealData.price(d)+" Ft",16,TEXT);
             if(checked)text(box,d.optString("vision_identification","")+" · confidenza "+d.optInt("vision_confidence")+"%",15,MUTED);
             long low=DealData.value(d),high=d.optLong("estimatedHighHuf",d.optLong("estimated_high_huf",0));
-            boolean valued=low>0&&d.optInt("sold_comp_count")>=3;
+            boolean valued=low>0&&d.optInt("sold_comp_count")>=3&&d.optJSONArray("comparables")!=null&&d.optJSONArray("comparables").length()>=3;
             text(box,valued?"Valore netto prudente: "+low+(high>low?"–"+high:"")+" Ft\nMargine stimato: "+DealData.profit(d)+" Ft · "+d.optInt("sold_comp_count")+" comparabili":"Valore e margine: ancora da verificare",15,eligible?GREEN:MUTED);
             text(box,d.optString("verificationNote","Candidato da controllare"),14,MUTED);
+            String observations=DealData.lines(d.optJSONArray("vision_reasons"));if(!observations.isEmpty())text(box,observations,14,MUTED);
             String risk=d.optString("authenticity_risk",d.optString("risk",""));if(!risk.isEmpty()&&!"null".equals(risk))text(box,risk,13,MUTED);
             String missing=DealData.lines(d.optJSONArray("vision_missing_photos"));if(!missing.isEmpty())text(box,"Foto mancanti:\n"+missing,13,Color.rgb(255,185,122));
             String red=DealData.lines(d.optJSONArray("vision_red_flags"));if(!red.isEmpty())text(box,"Elementi da verificare:\n"+red,13,Color.rgb(255,185,122));

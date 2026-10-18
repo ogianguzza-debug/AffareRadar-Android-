@@ -13,7 +13,7 @@ permissions:
   id-token: write
 concurrency:
   group: affareradar-photo-review
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   review:
     if: github.repository == 'ogianguzza-debug/AffareRadar-Android-' && github.event.repository.private == false
