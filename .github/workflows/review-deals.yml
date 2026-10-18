@@ -1,0 +1,53 @@
+name: Review listing photographs
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/review-deals.yml'
+      - 'tools/vision_worker.py'
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: affareradar-photo-review
+  cancel-in-progress: false
+jobs:
+  review:
+    if: github.repository == 'ogianguzza-debug/AffareRadar-Android-' && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_NO_CLOUD: '1'
+      OLLAMA_NUM_PARALLEL: '1'
+      OLLAMA_MAX_LOADED_MODELS: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install image decoder
+        run: python -m pip install Pillow==11.3.0
+      - name: Install pinned local model runtime
+        run: |
+          curl --fail --location --retry 2 https://github.com/ollama/ollama/releases/download/v0.40.6/ollama-linux-amd64.tar.zst --output /tmp/ollama.tar.zst
+          echo 'c164ab8b1b28e2a247c29719b8e404c423c5b83ae64c3ab4e59d50c7ff7fc5e0  /tmp/ollama.tar.zst' | sha256sum --check
+          mkdir -p "$RUNNER_TEMP/ollama"
+          tar --zstd -xf /tmp/ollama.tar.zst -C "$RUNNER_TEMP/ollama"
+          rm /tmp/ollama.tar.zst
+          echo "$RUNNER_TEMP/ollama/bin" >> "$GITHUB_PATH"
+      - name: Start local inference
+        run: |
+          ollama serve > "$RUNNER_TEMP/ollama.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:11434/api/version; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Download open source vision model
+        run: ollama pull qwen3-vl:2b
+      - name: Inspect real listing photographs
+        run: python tools/vision_worker.py
