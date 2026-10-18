@@ -47,14 +47,15 @@ Deno.serve(async (req: Request) => {
   const result = body.result;
   const photos = strings(body.photoDigests,4).filter(s => /^[a-f0-9]{64}$/.test(s));
   if (body.event !== 'result' || !result || !photos.length) return response({error:'photo_evidence_required'},400);
+  if (body.model !== 'qwen3-vl:2b-instruct-q4_K_M') return response({error:'unexpected_model'},400);
   const confidence = Math.max(0,Math.min(100,number(result.confidence)));
   const identification = String(result.identification ?? 'Non identificato').slice(0,1000);
   const query = String(result.comp_query ?? '').replace(/[^\p{L}\p{N} .'-]/gu,' ').trim().slice(0,120);
   const red = strings(result.red_flags), missing = strings(result.missing_photos);
   const reason = String(result.reason ?? '').slice(0,1500);
-  const evidence = {runId, model:'qwen3-vl:2b', paidAi:false, photoDigests:photos, result};
+  const evidence = {runId, model:'qwen3-vl:2b-instruct-q4_K_M', paidAi:false, photoDigests:photos, result};
   await sql`update public.ar_deals set vision_status='checked',vision_checked_at=now(),
-    vision_model='qwen3-vl:2b-local',vision_confidence=${confidence},vision_score=${confidence},
+    vision_model='qwen3-vl:2b-instruct-q4_K_M-local',vision_confidence=${confidence},vision_score=${confidence},
     vision_identification=${identification},vision_reasons=${sql.array([reason])},
     vision_red_flags=${sql.array(red)},vision_missing_photos=${sql.array(missing)},
     vision_positive_signs=${sql.array(strings(result.positive_signs))},vision_raw=${sql.json(evidence)},

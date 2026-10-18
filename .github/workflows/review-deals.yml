@@ -48,6 +48,6 @@ jobs:
           done
           exit 1
       - name: Download open source vision model
-        run: ollama pull qwen3-vl:2b
+        run: ollama pull qwen3-vl:2b-instruct-q4_K_M
       - name: Inspect real listing photographs
         run: python tools/vision_worker.py
