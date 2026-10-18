@@ -1,4 +1,5 @@
-name: Build AffareRadar APK\n# rebuild: corrected dashboard and treasure scoring
+name: Build AffareRadar APK
+# rebuild: corrected dashboard and treasure scoring
 
 on:
   push:

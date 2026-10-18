@@ -23,7 +23,8 @@ import java.net.URL;
 
 public class MainActivity extends Activity {
     private static final String ENDPOINT="https://tquprajezqoasqbmknwc.supabase.co/functions/v1/affareradar-worker";
-    private static final String DASHBOARD_API="https://tquprajezqoasqbmknwc.supabase.co/functions/v1/affareradar-feed";\n    private static final String API_KEY="sb_publishable_oIkCZfnXytk2QL2WgYGQYQ_tQHUR22w";
+    private static final String DASHBOARD_API="https://tquprajezqoasqbmknwc.supabase.co/functions/v1/affareradar-feed";
+    private static final String API_KEY="sb_publishable_oIkCZfnXytk2QL2WgYGQYQ_tQHUR22w";
     private TextView server, result, status;
     private EditText code;
     private Button pair;
