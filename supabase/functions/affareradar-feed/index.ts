@@ -15,8 +15,10 @@ Deno.serve(async (req: Request) => {
       sql`select max(vision_checked_at) as last_review_at from public.ar_deals where active=true and vision_status='checked'`,
     ]);
     const seen = new Set<string>();
-    const deals = [...reviewed, ...priced].filter(d => !excluded(d) && !seen.has(d.id) && !!seen.add(d.id)).map(clientDeal);
-    const candidates = preliminary.filter(d => !excluded(d) && !seen.has(d.id) && !!seen.add(d.id)).map(clientDeal);
+    const inspected = [...reviewed, ...priced].filter(d => !excluded(d) && !seen.has(d.id) && !!seen.add(d.id)).map(clientDeal);
+    // Older APKs treat every item in deals as an alert candidate: keep that array strict.
+    const deals = inspected.filter(d => d.alertEligible);
+    const candidates = [...inspected.filter(d => !d.alertEligible), ...preliminary.filter(d => !excluded(d) && !seen.has(d.id) && !!seen.add(d.id)).map(clientDeal)];
     return response({version:'2.0', generatedAt:new Date().toISOString(), filterMode:'evidence-first',
       deals, candidates, health:{sources, signals, lastVisionAt:vision[0]?.last_review_at ?? null,
         visionMode:'open-source-github-runner', paidAi:false, alerts:deals.filter(d => d.alertEligible).length},

@@ -12,7 +12,7 @@ public class BootReceiver extends BroadcastReceiver {
             DealAlertJob.schedule(context);
             try {
                 ComponentName cn = new ComponentName(context, RadarNotificationListener.class);
-                NotificationListenerService.requestRebind(cn);
+                if (android.os.Build.VERSION.SDK_INT >= 24) NotificationListenerService.requestRebind(cn);
             } catch (Exception ignored) { }
         }
     }

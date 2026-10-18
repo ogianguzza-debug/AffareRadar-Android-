@@ -30,7 +30,7 @@ public class RadarNotificationListener extends NotificationListenerService {
 
     @Override public void onListenerDisconnected() {
         handler.removeCallbacks(heartbeatLoop);
-        try { requestRebind(new ComponentName(this, RadarNotificationListener.class)); } catch (Exception ignored) { }
+        try { if (android.os.Build.VERSION.SDK_INT >= 24) requestRebind(new ComponentName(this, RadarNotificationListener.class)); } catch (Exception ignored) { }
         super.onListenerDisconnected();
     }
 
@@ -58,11 +58,13 @@ public class RadarNotificationListener extends NotificationListenerService {
             try {
                 JSONObject body = new JSONObject();
                 body.put("event", "heartbeat");
-                body.put("appVersion", "1.1-note8-worker");
+                body.put("appVersion", AppState.version(this));
                 body.put("deviceModel", android.os.Build.MANUFACTURER + " " + android.os.Build.MODEL);
                 JSONObject caps = new JSONObject();
                 caps.put("officialNotifications", true);
-                caps.put("notificationListener", true);
+                caps.put("notificationListener", AppState.listenerEnabled(this));
+                caps.put("jobAlerts", true);
+                caps.put("photoCards", true);
                 caps.put("autoRebind", true);
                 caps.put("bootRebind", true);
                 body.put("capabilities", caps);

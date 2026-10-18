@@ -22,7 +22,8 @@ export function alertEligible(d: any): boolean {
     strings(d.vision_red_flags).length === 0 && strings(d.vision_missing_photos).length === 0 &&
     !['declared_replica', 'high_risk', 'listing_unavailable'].includes(d.authenticity_status) &&
     number(d.sold_comp_count) >= 3 && number(d.conservative_profit_huf) >= 15000 && number(d.score) >= 75 &&
-    number(d.estimated_low_huf) > 0 && Array.isArray(evidence?.comparables) && evidence.comparables.length >= 3;
+    number(d.estimated_low_huf) > 0 && number(evidence?.askingHuf) === number(d.price_huf) &&
+    Array.isArray(evidence?.comparables) && evidence.comparables.length >= 3;
 }
 export function lane(d: any): string {
   const text = `${d.title ?? ''} ${d.category ?? ''}`;

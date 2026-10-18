@@ -14,11 +14,11 @@ from PIL import Image, ImageOps
 ENDPOINT = 'https://tquprajezqoasqbmknwc.supabase.co/functions/v1/affareradar-vision'
 MODEL = 'qwen3-vl:2b'
 SCHEMA = {'type':'object','properties':{
-    'identification':{'type':'string'}, 'confidence':{'type':'integer'},
-    'comp_query':{'type':'string'}, 'reason':{'type':'string'},
-    'positive_signs':{'type':'array','items':{'type':'string'}},
-    'red_flags':{'type':'array','items':{'type':'string'}},
-    'missing_photos':{'type':'array','items':{'type':'string'}}},
+    'identification':{'type':'string','maxLength':240}, 'confidence':{'type':'integer','minimum':0,'maximum':100},
+    'comp_query':{'type':'string','maxLength':90}, 'reason':{'type':'string','maxLength':350},
+    'positive_signs':{'type':'array','maxItems':3,'items':{'type':'string','maxLength':100}},
+    'red_flags':{'type':'array','maxItems':3,'items':{'type':'string','maxLength':100}},
+    'missing_photos':{'type':'array','maxItems':3,'items':{'type':'string','maxLength':100}}},
     'required':['identification','confidence','comp_query','reason','positive_signs','red_flags','missing_photos'],
     'additionalProperties':False}
 
@@ -81,7 +81,7 @@ Flag visible inconsistencies, suspected replicas and poor image coverage in red_
 Listing data: ''' + json.dumps({k:deal.get(k) for k in ('title','description','price_huf','category')},ensure_ascii=False)
     data=request_json('http://127.0.0.1:11434/api/generate',{
         'model':MODEL,'prompt':prompt,'images':images,'format':SCHEMA,'stream':False,'think':False,
-        'options':{'temperature':0,'num_ctx':8192,'num_predict':700},'keep_alive':'10m'},timeout=480)
+        'options':{'temperature':0,'num_ctx':8192,'num_predict':1400},'keep_alive':'10m'},timeout=480)
     if not data.get('done') or data.get('done_reason')=='length': raise ValueError('Incomplete model output')
     result=json.loads(data['response'])
     for field in SCHEMA['required']:
